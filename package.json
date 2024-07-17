@@ -1,0 +1,78 @@
+{
+  "name": "bytebuddy",
+  "displayName": "ByteBuddy",
+  "description": "Show file and folder sizes in a custom VS Code explorer view",
+  "version": "0.1.0",
+  "publisher": "NeverslowLVII",
+  "engines": {
+    "vscode": "^1.89.0"
+  },
+  "categories": ["Other"],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "id": "fileSizeExplorer",
+          "name": "File Size Explorer"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "fileSizeExplorer.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "fileSizeExplorer.sort",
+        "title": "Sort Files",
+        "icon": "$(sort-precedence)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "fileSizeExplorer.refresh",
+          "when": "view == fileSizeExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "fileSizeExplorer.sort",
+          "when": "view == fileSizeExplorer",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "watch:tsc": "tsc -watch -p ./",
+    "watch:esbuild": "node esbuild.js --watch"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.89.0",
+    "@types/glob": "^7.1.3",
+    "@types/mocha": "^8.2.2",
+    "@types/node": "14.x",
+    "eslint": "^7.27.0",
+    "@typescript-eslint/eslint-plugin": "^4.26.0",
+    "@typescript-eslint/parser": "^4.26.0",
+    "glob": "^7.1.7",
+    "mocha": "^8.4.0",
+    "typescript": "^4.3.2",
+    "vscode-test": "^1.5.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NeverslowLVII/ByteBuddy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/NeverslowLVII/ByteBuddy/issues"
+  }
+}
