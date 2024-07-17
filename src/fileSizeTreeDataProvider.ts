@@ -8,7 +8,7 @@ export class FileSizeTreeDataProvider implements vscode.TreeDataProvider<FileSiz
 
     private sortOrder: 'name' | 'size' | 'type' = 'name';
 
-    constructor(private workspaceRoot: string | undefined) {}
+    constructor(private workspaceRoot: string | undefined, private context: vscode.ExtensionContext) {}
 
     refresh(): void {
         this._onDidChangeTreeData.fire();
@@ -38,23 +38,14 @@ export class FileSizeTreeDataProvider implements vscode.TreeDataProvider<FileSiz
             const stats = await fs.promises.stat(filePath);
             const sizeString = this.formatSize(stats.size);
 
-            if (stats.isDirectory()) {
-                items.push(new FileSizeItem(
-                    file,
-                    vscode.TreeItemCollapsibleState.Collapsed,
-                    vscode.Uri.file(filePath),
-                    sizeString,
-                    stats.size
-                ));
-            } else {
-                items.push(new FileSizeItem(
-                    file,
-                    vscode.TreeItemCollapsibleState.None,
-                    vscode.Uri.file(filePath),
-                    sizeString,
-                    stats.size
-                ));
-            }
+            items.push(new FileSizeItem(
+                file,
+                stats.isDirectory() ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None,
+                vscode.Uri.file(filePath),
+                sizeString,
+                stats.size,
+                this.context
+            ));
         }
 
         return items;
@@ -100,17 +91,21 @@ export class FileSizeItem extends vscode.TreeItem {
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         public readonly resourceUri: vscode.Uri,
         public readonly size: string,
-        public readonly sizeInBytes: number
+        public readonly sizeInBytes: number,
+        private context: vscode.ExtensionContext
     ) {
         super(label, collapsibleState);
         this.tooltip = `${this.label} (${this.size})`;
         this.description = this.size;
+        this.setIcon();
+        this.contextValue = this.collapsibleState === vscode.TreeItemCollapsibleState.None ? 'file' : 'directory';
     }
 
-    iconPath = {
-        light: path.join(__filename, '..', '..', 'resources', 'light', 'file.svg'),
-        dark: path.join(__filename, '..', '..', 'resources', 'dark', 'file.svg')
-    };
-
-    contextValue = 'file';
+    private setIcon() {
+        const iconName = this.collapsibleState === vscode.TreeItemCollapsibleState.None ? 'file.svg' : 'folder.svg';
+        this.iconPath = {
+            light: this.context.asAbsolutePath(path.join('resources', 'light', iconName)),
+            dark: this.context.asAbsolutePath(path.join('resources', 'dark', iconName))
+        };
+    }
 }

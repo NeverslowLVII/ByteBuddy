@@ -19,7 +19,7 @@ suite('ByteBuddy Extension Test Suite', () => {
         fs.mkdirSync(path.join(workspaceFolder, 'testdir'));
         
         outputChannel = vscode.window.createOutputChannel('ByteBuddy Test');
-        treeDataProvider = new FileSizeTreeDataProvider(workspaceFolder);
+        treeDataProvider = new FileSizeTreeDataProvider(workspaceFolder, {} as vscode.ExtensionContext);
     });
 
     suiteTeardown(() => {

@@ -7,7 +7,7 @@ export function activate(context: vscode.ExtensionContext) {
         : undefined;
 
     const outputChannel = vscode.window.createOutputChannel('ByteBuddy');
-    const fileSizeTreeDataProvider = new FileSizeTreeDataProvider(rootPath);
+    const fileSizeTreeDataProvider = new FileSizeTreeDataProvider(rootPath, context);
 
     vscode.window.registerTreeDataProvider('fileSizeExplorer', fileSizeTreeDataProvider);
 
