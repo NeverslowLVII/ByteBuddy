@@ -6,7 +6,6 @@ export function activate(context: vscode.ExtensionContext) {
         ? vscode.workspace.workspaceFolders[0].uri.fsPath
         : undefined;
 
-    const outputChannel = vscode.window.createOutputChannel('ByteBuddy');
     const fileSizeTreeDataProvider = new FileSizeTreeDataProvider(rootPath, context);
 
     vscode.window.registerTreeDataProvider('fileSizeExplorer', fileSizeTreeDataProvider);

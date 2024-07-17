@@ -24,28 +24,36 @@ export class FileSizeTreeDataProvider implements vscode.TreeDataProvider<FileSiz
             return Promise.resolve([]);
         }
 
-        const folderPath = element ? element.resourceUri.fsPath : this.workspaceRoot;
-        const children = await this.getFilesInFolder(folderPath);
-        return this.sortItems(children);
+        if (element) {
+            return Promise.resolve([]);
+        }
+
+        const allFiles = await this.getAllFiles(this.workspaceRoot);
+        return this.sortItems(allFiles);
     }
 
-    private async getFilesInFolder(folderPath: string): Promise<FileSizeItem[]> {
+    private async getAllFiles(dir: string): Promise<FileSizeItem[]> {
         const items: FileSizeItem[] = [];
-        const files = await fs.promises.readdir(folderPath);
+        const files = await fs.promises.readdir(dir);
 
         for (const file of files) {
-            const filePath = path.join(folderPath, file);
+            const filePath = path.join(dir, file);
             const stats = await fs.promises.stat(filePath);
+            const relativePath = path.relative(this.workspaceRoot!, filePath);
             const sizeString = this.formatSize(stats.size);
 
-            items.push(new FileSizeItem(
-                file,
-                stats.isDirectory() ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None,
-                vscode.Uri.file(filePath),
-                sizeString,
-                stats.size,
-                this.context
-            ));
+            if (stats.isDirectory()) {
+                items.push(...await this.getAllFiles(filePath));
+            } else {
+                items.push(new FileSizeItem(
+                    relativePath,
+                    vscode.TreeItemCollapsibleState.None,
+                    vscode.Uri.file(filePath),
+                    sizeString,
+                    stats.size,
+                    this.context
+                ));
+            }
         }
 
         return items;
@@ -59,10 +67,9 @@ export class FileSizeTreeDataProvider implements vscode.TreeDataProvider<FileSiz
                 return items.sort((a, b) => b.sizeInBytes - a.sizeInBytes);
             case 'type':
                 return items.sort((a, b) => {
-                    if (a.collapsibleState === b.collapsibleState) {
-                        return a.label.localeCompare(b.label);
-                    }
-                    return a.collapsibleState === vscode.TreeItemCollapsibleState.Collapsed ? -1 : 1;
+                    const extA = path.extname(a.label);
+                    const extB = path.extname(b.label);
+                    return extA.localeCompare(extB) || a.label.localeCompare(b.label);
                 });
             default:
                 return items;
@@ -98,14 +105,13 @@ export class FileSizeItem extends vscode.TreeItem {
         this.tooltip = `${this.label} (${this.size})`;
         this.description = this.size;
         this.setIcon();
-        this.contextValue = this.collapsibleState === vscode.TreeItemCollapsibleState.None ? 'file' : 'directory';
+        this.contextValue = 'file';
     }
 
     private setIcon() {
-        const iconName = this.collapsibleState === vscode.TreeItemCollapsibleState.None ? 'file.svg' : 'folder.svg';
         this.iconPath = {
-            light: this.context.asAbsolutePath(path.join('resources', 'light', iconName)),
-            dark: this.context.asAbsolutePath(path.join('resources', 'dark', iconName))
+            light: this.context.asAbsolutePath(path.join('resources', 'light', 'file.svg')),
+            dark: this.context.asAbsolutePath(path.join('resources', 'dark', 'file.svg'))
         };
     }
 }
